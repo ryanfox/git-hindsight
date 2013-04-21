@@ -15,17 +15,5 @@ class Commit:
         self.message = message
         self.changes = changes
     
-    def getchangedates(filename):
-        """
-        Get a list of dates a given file was changed on, along with the number
-        of lines added or subtracted.  If the file does not exist in the repo,
-        an empty list is returned.
-        
-        :param filename: The file to return change summary on.
-        :returns: A list sorted from earliest to latest changes.  Each list
-            element is a tuple of the format (datetime, lines), where datetime
-            is a datetime object of the change, and lines is an int containing
-            the number of additions or subtractions to the file.  If the file
-            never existed in the repository, an empty list is returned.
-        """
-        pass
+    def __str__(self):
+        return '{}\n{}\n{}'.format(self.author, self.date, self.message)
