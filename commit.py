@@ -17,3 +17,18 @@ class Commit:
     
     def __str__(self):
         return '{}\n{}\n{}'.format(self.author, self.date, self.message)
+    
+    def getnetchange(commit):
+        """
+        Get the net line count change resulting from a commit or list of commits.
+        
+        :param commit: A commit of list of commits to add up.
+        :returns: The sum of line changes (additions - subtractions) from all the
+            provided commits
+        """
+        if isinstance(commit, list):
+            return sum(getnetsizechange(c) for c in commit) # recursive call
+        total = 0
+        for change in commit.changes:
+            total += change[1] - change[2]
+        return total

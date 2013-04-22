@@ -6,7 +6,6 @@ Planned functionality:
         -Change in file count
         -Changes in file size
         -Biggest files
-        -Total LOC
         -Commit frequency
     
     -Most frequent committers
