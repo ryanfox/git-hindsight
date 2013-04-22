@@ -77,14 +77,15 @@ class Repo:
         :returns: A list containing the dates and size changes of the specified
             file.
         """
-        sizechanges = []
+        filechanges = []
         
         filecommits = self.getfilecommits(filename)
         for commit in filecommits:
-            for change in commit.changes:
-                if re.match(filename, change[0]) or change[0] == filename:
-                    sizechanges.append((commit.date, change[1], change[2]))
-        return sizechanges
+            if commit.date < before and commit.date > after:
+                for change in commit.changes:
+                    if re.match(filename, change[0]) or change[0] == filename:
+                        filechanges.append((commit.date, change[1], change[2]))
+        return filechanges
 
 
     def plotrepoloc(self, before=datetime.now(), after=datetime(1, 1, 1),

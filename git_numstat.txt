@@ -1,0 +1,28 @@
+commit b49bb237f9bd61f38639b35751b3f39271a9f78c
+Author: Ryan Fox <ryan@foxrow.com>
+Date:   Sun Apr 21 20:34:25 2013 -0500
+
+    Added class to hindsight
+
+0	1	README.rst
+15	0	commit.py
+206	129	hindsight.py
+
+commit 020281d03ffc5e71cb84c5d5a5a5f86ab80da7bf
+Author: Ryan Fox <ryan@foxrow.com>
+Date:   Sun Apr 21 16:38:21 2013 -0500
+
+    Added plotting of total LOC
+
+2	14	commit.py
+80	2	hindsight.py
+
+commit a137816c79714740d7964fe96878febaac014d8a
+Author: Ryan Fox <ryan@foxrow.com>
+Date:   Sun Apr 21 04:19:37 2013 -0500
+
+    Initial commit.  parses log file.
+
+14	0	README.rst
+31	0	commit.py
+77	0	hindsight.py

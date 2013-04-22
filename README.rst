@@ -1,11 +1,27 @@
 Look at your git repo in hindsight.
 
+Usage:
+
+    (on the command line)
+    $ git log --numstat > gitlog.txt
+
+    (in python)
+    >>> from hindsight import Repo
+    
+    >>> repo = Repo('gitlog.txt')
+    >>> repo.plotfileloc('foo.py')
+    
+    >>> from datetime import datetime
+    >>> repo.plotrepoloc(after=datetime(2013, 1, 10))
+
+
 Planned functionality:
 
     -View graphs of your codebase over time:
         -Change in file count
-        -Changes in file size
         -Biggest files
+        -Biggest/smallest commits
+        -Mean/median/mode commit size
         -Commit frequency
     
     -Most frequent committers
