@@ -1,6 +1,7 @@
 Look at your git repo in hindsight.
 
-Usage:
+Usage
+=====
 
     (on the command line)
     
@@ -17,22 +18,25 @@ Usage:
     >>> repo.plotrepoloc(after=datetime(2013, 1, 10))
 
 
-Planned functionality:
+Planned functionality
+=====================
 
     -View graphs of your codebase over time:
         
-        -Change in file count
+        1.Change in file count
         
-        -Biggest files
+        2.Biggest files
         
-        -Biggest/smallest commits
+        3.Biggest/smallest commits
         
-        -Mean/median/mode commit size
+        4.Mean/median/mode commit size
         
-        -Commit frequency
+        5.Commit frequency
     
     -Most frequent committers
     
     -Who added/deleted the most lines
     
     -Histogram of file sizes
+    
+    -Histogram of commits (both number of files touched and LOC changed)
