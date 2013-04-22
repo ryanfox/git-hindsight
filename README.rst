@@ -3,9 +3,11 @@ Look at your git repo in hindsight.
 Usage:
 
     (on the command line)
+    
     $ git log --numstat > gitlog.txt
 
     (in python)
+    
     >>> from hindsight import Repo
     
     >>> repo = Repo('gitlog.txt')
@@ -18,12 +20,19 @@ Usage:
 Planned functionality:
 
     -View graphs of your codebase over time:
+        
         -Change in file count
+        
         -Biggest files
+        
         -Biggest/smallest commits
+        
         -Mean/median/mode commit size
+        
         -Commit frequency
     
     -Most frequent committers
+    
     -Who added/deleted the most lines
+    
     -Histogram of file sizes
