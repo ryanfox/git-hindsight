@@ -5,6 +5,7 @@ import matplotlib.pyplot
 import re
 import sys
 
+from collections import defaultdict
 from datetime import datetime
 
 from commit import Commit
@@ -21,8 +22,7 @@ class Repo:
         Get a list of commits a given file was changed in.  If the file does not
         exist in the repo, an empty list is returned.
         
-        :param filename: The file to return change summary on.  A regular
-            expression may be used as well.
+        :param filename: The file to return change summary on.
         :param before: A datetime object, all commits after this will be
             excluded
         :param after: A datetime object all commits before this will be excluded
@@ -33,12 +33,16 @@ class Repo:
             subtractions contain the number of changes to the file.  If the file
             never existed in the repository, an empty list is returned.
         """
+        regex = re.compile(re.escape(filename))
         changes = []
-        for commit in self.commits:
+        
+        # extract commits fitting inside the date bounds first
+        # we know they are already sorted earliest to latest
+        commits = [commit for commit in self.commits if commit.date < before and commit.date > after]
+        for commit in commits:
             for change in commit.changes:
-                if re.match(filename, change[0]) or change[0] == filename:
-                    if commit.date < before and commit.date > after:
-                        changes.append(commit)
+                if re.search(regex, change[0]):
+                    changes.append(commit)
 
         return changes
 
@@ -47,18 +51,18 @@ class Repo:
         """
         Get the number of lines in a file at a given date.
         
-        :param filename: Name of file to use.  Can be a filename or regular
-            expression
+        :param filename: Name of file to use.
         :param date: Date to count up to
         :returns: The number of lines in the file specified as of date supplied
         """
-        prunedcommits = self.getfilecommits(filename, before=date)
+        regex = re.compile(re.escape(filename))
+        commits = self.getfilecommits(filename, before=date)
         total = 0
-        for commit in prunedcommits:
-            if commit.date < date:
-                for change in commit.changes:
-                    if re.match(filename, change[0]) or filename == change[0]:
-                        total += change[1] - change[2]
+        for commit in commits:
+            for change in commit.changes:
+                if re.search(regex, change[0]):
+                    total += change[1] - change[2]
+        
         return total
 
 
@@ -68,8 +72,7 @@ class Repo:
         Get a list of size changes to a file.  Each list element is a tuple of
             the form `(date, added, deleted)`, where date is a datetime object.
         
-        :param filename: The file to search for.  The path relative to git root
-            or regular expressions are accepted.
+        :param filename: The file to search for.
         :param before: A datetime object, all commits after this will be
             excluded
         :param after: A datetime object all commits before this will be
@@ -77,15 +80,52 @@ class Repo:
         :returns: A list containing the dates and size changes of the specified
             file.
         """
+        regex = re.compile(re.escape(filename))
         filechanges = []
         
         filecommits = self.getfilecommits(filename)
         for commit in filecommits:
             if commit.date < before and commit.date > after:
                 for change in commit.changes:
-                    if re.match(filename, change[0]) or change[0] == filename:
+                    if re.search(regex, change[0]) or change[0] == filename:
                         filechanges.append((commit.date, change[1], change[2]))
         return filechanges
+
+
+    def getallfilesizes(self, date=datetime.now()):
+        """
+        Get a dict of filenames and sizes.  dict elements are of the
+        format `{'filename': filesize}`.  Date may optionally be specified.
+        Much faster than getting individual sizes for each file if you are
+        getting many at a time.
+        
+        :param date: Point in time at which to get file sizes.
+        :returns: A dict of filenames and sizes
+        """
+        files = defaultdict(int)
+        commits = (commit for commit in self.commits if commit.date < date)
+        for commit in commits:
+            for change in commit.changes:
+                files[change[0]] += change[1] - change[2]
+        return files
+    
+    
+    def getcommitsperfile(self, date=datetime.now()):
+        """
+        Get a dict of filenames and number of commits.  dict elements are of the
+        format `{'filename': commits}`.  Date may optionally be specified.
+        Much faster than getting individual commits for each file if you are
+        getting many at a time.
+        
+        :param date: Point in time at which to get file sizes.
+        :returns: A dict of filenames and number of times it was committed
+        """
+        files = defaultdict(int)
+        commits = (commit for commit in self.commits if commit.date < date)
+        for commit in commits:
+            for change in commit.changes:
+                files[change[0]] += 1
+        return files
 
 
     def plotrepoloc(self, before=datetime.now(), after=datetime(1, 1, 1),
@@ -119,7 +159,31 @@ class Repo:
         else:
             label = '' # just lines of code
         matplotlib.pyplot.ylabel('Total {}LOC'.format(label))
-        matplotlib.pyplot.title(title)
+        if savefile:
+            matplotlib.pyplot.savefig(savefile)
+        else:
+            matplotlib.pyplot.show()
+
+
+    def plotcumulativecommits(self, before=datetime.now(),
+                              after=datetime(1, 1, 1), savefile=None):
+        """
+        Plot cumulative commits.  Arguments `before` and `after`
+        may be specified to include/exclude a range from plotting.  They should
+        be datetime objects.  A scale factor may optionally be specified to make
+        the y-axis easier to read.
+        
+        :param before: A datetime object, all commits after this will be
+            excluded from the plot
+        :param after: A datetime object all commits before this will be excluded
+            from the plot
+        :param savefile: Filename to save plot as.
+        """
+        commits = [commit for commit in self.commits if commit.date < before and commit.date > after]
+        dates = matplotlib.dates.date2num(c.date for c in commits)
+
+        matplotlib.pyplot.plot_date(dates, range(len(dates)), 'b-')
+        matplotlib.pyplot.title('Cumulative commits')
         if savefile:
             matplotlib.pyplot.savefig(savefile)
         else:
@@ -152,7 +216,79 @@ class Repo:
             matplotlib.pyplot.savefig(savefile)
         else:
             matplotlib.pyplot.show()
+    
+    
+    def plotcommitsizehist(self, scalefactor=1, log=False, numexcluded=None,
+                           savefile=None):
+        """
+        Plot a histogram of commit sizes.
         
+        :param scalefactor: Scale the results to make chart easier to read.
+        :param log: If true, histogram will be plotted with a logarithmic
+            y-axis.  This makes it easier to read if you have a very tall
+            plot.
+        :param numexcluded: Number of commits to clip off each end of the
+            distribution.  Again, can make it easier to read if you have a few
+            very far outliers.
+        :param savefile: Filename to save plot as.
+        """
+        sizes = [float(commit.getnetchange()) / scalefactor for commit in self.commits]
+        if numexcluded and numexcluded > 0:
+            sizes.sort()
+            sizes = sizes[numexcluded:-numexcluded]
+        
+        matplotlib.pyplot.hist(sizes, log=log)
+        if scalefactor == 1000:
+            label = 'k' # kilo-lines of code
+        elif scalefactor == 1000000:
+            label = 'M' # Mega-lines of code
+        else:
+            label = '' # just lines of code
+        matplotlib.pyplot.xlabel('Net {}LOC change'.format(label))
+        matplotlib.pyplot.ylabel('Number of commits')
+        matplotlib.pyplot.title('Commit size')
+        if savefile:
+            matplotlib.pyplot.savefig(savefile)
+        else:
+            matplotlib.pyplot.show()
+
+        
+    def plotfilesizehist(self, date=datetime.now(), scalefactor=1, log=False,
+                         numexcluded=None, savefile=None):
+        """
+        Plot a histogram of file sizes.
+        
+        :param date: Date to show file sizes at.
+        :param scalefactor: Scale the results to make chart easier to read.
+        :param log: If true, histogram will be plotted with a logarithmic
+            y-axis.  This makes it easier to read if you have a very tall
+            plot.
+        :param numexcluded: Number of commits to clip off each end of the
+            distribution.  Again, can make it easier to read if you have a few
+            very far outliers.
+        :param savefile: Filename to save plot as.
+        """
+        files = self.getallfilesizes(date=date)
+        sizes = files.values()
+
+        if numexcluded and numexcluded > 0:
+            sizes.sort()
+            sizes = sizes[:-numexcluded]
+
+        matplotlib.pyplot.hist(sizes, log=log)
+        if scalefactor == 1000:
+            label = 'k' # kilo-lines of code
+        elif scalefactor == 1000000:
+            label = 'M' # Mega-lines of code
+        else:
+            label = '' # just lines of code
+        matplotlib.pyplot.ylabel('File size - {}LOC'.format(label))
+        matplotlib.pyplot.title('File size - {}'.format(date.ctime()))
+        if savefile:
+            matplotlib.pyplot.savefig(savefile)
+        else:
+            matplotlib.pyplot.show()
+    
 
     @staticmethod
     def extractchanges(lines):
@@ -223,8 +359,8 @@ class Repo:
 
 if __name__ == '__main__':
     filename = sys.argv[1]
-    commits = Repo(filename)
-    commits.plotfileloc(filename='.*VerticalSolrWidget.java')
+    repo = Repo(filename)
+    repo.plotfilesizehist()
     
 
 

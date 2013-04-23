@@ -9,7 +9,7 @@ Usage
 
     (in python)
     
-    >>> from hindsight import Repo
+    >>> from hindsight import *
     
     >>> repo = Repo('gitlog.txt')
     >>> repo.plotfileloc('foo.py')
@@ -24,19 +24,13 @@ Planned functionality
     -View graphs of your codebase over time:
         
         1.Change in file count
-        
         2.Biggest files
-        
         3.Biggest/smallest commits
-        
         4.Mean/median/mode commit size
-        
         5.Commit frequency
     
     -Most frequent committers
     
     -Who added/deleted the most lines
-    
-    -Histogram of file sizes
     
     -Histogram of commits (both number of files touched and LOC changed)

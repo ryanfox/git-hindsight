@@ -32,10 +32,10 @@ class RepoTest(unittest.TestCase):
         self.assertEqual(changes[0][2], 0)
     
     def test_plotrepoloc(self):
-        pass
+        pass # not sure how I want to test images yet
     
     def test_plotfileloc(self):
-        pass
+        pass # not sure how I want to test images yet
     
     def test_extractchanges(self):
         lines = ['14      0       README.rst',
