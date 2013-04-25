@@ -282,7 +282,8 @@ class Repo:
             label = 'M' # Mega-lines of code
         else:
             label = '' # just lines of code
-        matplotlib.pyplot.ylabel('File size - {}LOC'.format(label))
+        matplotlib.pyplot.xlabel('File size - {}LOC'.format(label))
+        matplotlib.pyplot.ylabel('Number of files')
         matplotlib.pyplot.title('File size - {}'.format(date.ctime()))
         if savefile:
             matplotlib.pyplot.savefig(savefile)
