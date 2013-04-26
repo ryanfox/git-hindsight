@@ -1,7 +1,7 @@
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.dates
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
 import re
 import sys
 
@@ -151,18 +151,18 @@ class Repo:
         for i, change in enumerate(excludedcommits):
             vals[i] = vals[i - 1] + excludedcommits[i].getnetchange() / float(scalefactor)
 
-        matplotlib.pyplot.plot_date(dates, vals, 'b-')
+        plt.plot_date(dates, vals, 'b-')
         if scalefactor == 1000:
             label = 'k' # kilo-lines of code
         elif scalefactor == 1000000:
             label = 'M' # Mega-lines of code
         else:
             label = '' # just lines of code
-        matplotlib.pyplot.ylabel('Total {}LOC'.format(label))
+        plt.ylabel('Total {}LOC'.format(label))
         if savefile:
-            matplotlib.pyplot.savefig(savefile)
+            plt.savefig(savefile)
         else:
-            matplotlib.pyplot.show()
+            plt.show()
 
 
     def plotcumulativecommits(self, before=datetime.now(),
@@ -182,12 +182,12 @@ class Repo:
         commits = [commit for commit in self.commits if commit.date < before and commit.date > after]
         dates = matplotlib.dates.date2num(c.date for c in commits)
 
-        matplotlib.pyplot.plot_date(dates, range(len(dates)), 'b-')
-        matplotlib.pyplot.title('Cumulative commits')
+        plt.plot_date(dates, range(len(dates)), 'b-')
+        plt.title('Cumulative commits')
         if savefile:
-            matplotlib.pyplot.savefig(savefile)
+            plt.savefig(savefile)
         else:
-            matplotlib.pyplot.show()
+            plt.show()
 
 
     def plotfileloc(self, filename, before=datetime.now(),
@@ -203,19 +203,19 @@ class Repo:
         for i, change in enumerate(sizechanges):
             vals[i] = vals[i - 1] + (change[1] - change[2]) / float(scalefactor)
         
-        matplotlib.pyplot.plot_date(dates, vals, 'b-')
+        plt.plot_date(dates, vals, 'b-')
         if scalefactor == 1000:
             label = 'k' # kilo-lines of code
         elif scalefactor == 1000000:
             label = 'M' # Mega-lines of code
         else:
             label = '' # just lines of code
-        matplotlib.pyplot.ylabel('Total {}LOC'.format(label))
-        matplotlib.pyplot.title(filename)
+        plt.ylabel('Total {}LOC'.format(label))
+        plt.title(filename)
         if savefile:
-            matplotlib.pyplot.savefig(savefile)
+            plt.savefig(savefile)
         else:
-            matplotlib.pyplot.show()
+            plt.show()
     
     
     def plotcommitsizehist(self, scalefactor=1, log=False, numexcluded=None,
@@ -237,20 +237,20 @@ class Repo:
             sizes.sort()
             sizes = sizes[numexcluded:-numexcluded]
         
-        matplotlib.pyplot.hist(sizes, log=log)
+        plt.hist(sizes, log=log)
         if scalefactor == 1000:
             label = 'k' # kilo-lines of code
         elif scalefactor == 1000000:
             label = 'M' # Mega-lines of code
         else:
             label = '' # just lines of code
-        matplotlib.pyplot.xlabel('Net {}LOC change'.format(label))
-        matplotlib.pyplot.ylabel('Number of commits')
-        matplotlib.pyplot.title('Commit size')
+        plt.xlabel('Net {}LOC change'.format(label))
+        plt.ylabel('Number of commits')
+        plt.title('Commit size')
         if savefile:
-            matplotlib.pyplot.savefig(savefile)
+            plt.savefig(savefile)
         else:
-            matplotlib.pyplot.show()
+            plt.show()
 
         
     def plotfilesizehist(self, date=datetime.now(), scalefactor=1, log=False,
@@ -275,20 +275,51 @@ class Repo:
             sizes.sort()
             sizes = sizes[:-numexcluded]
 
-        matplotlib.pyplot.hist(sizes, log=log)
+        plt.hist(sizes, log=log)
         if scalefactor == 1000:
             label = 'k' # kilo-lines of code
         elif scalefactor == 1000000:
             label = 'M' # Mega-lines of code
         else:
             label = '' # just lines of code
-        matplotlib.pyplot.xlabel('File size - {}LOC'.format(label))
-        matplotlib.pyplot.ylabel('Number of files')
-        matplotlib.pyplot.title('File size - {}'.format(date.ctime()))
+        plt.xlabel('File size - {}LOC'.format(label))
+        plt.ylabel('Number of files')
+        plt.title('File size - {}'.format(date.ctime()))
         if savefile:
-            matplotlib.pyplot.savefig(savefile)
+            plt.savefig(savefile)
         else:
-            matplotlib.pyplot.show()
+            plt.show()
+    
+    
+    def plotauthorcommits(self, date=datetime.now(), savefile=None):
+        """
+        Plot a bar chart of the number of commits each author has.
+        
+        :param date: Date at which to plot commit totals.
+        :param savefile: Filename to save chart to.
+        """
+        commits = [commit for commit in self.commits if commit.date < date]
+        commitsperauthor = defaultdict(int)
+        for commit in commits:
+            commitsperauthor[commit.author] += 1
+        commits = [(author, commitnum) for author, commitnum in commitsperauthor.items()]
+        commits.sort(key=lambda commit:commit[0])
+        authors, commits = zip(*commits)
+
+        fig, ax = plt.subplots()
+        ax.bar(range(len(commits)), commits)
+        ax.set_xlabel('Authors')
+        ax.set_xticks([x + .5 for x in range(len(commits))])
+        ax.set_xticklabels(authors, fontsize=8, rotation='vertical')
+        ax.set_ylabel('Commits')
+        ax.set_title('Commits by Author')
+        plt.tight_layout()
+        
+        if savefile:
+            plt.savefig(savefile)
+        else:
+            plt.show()
+        
     
 
     @staticmethod
