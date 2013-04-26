@@ -24,15 +24,11 @@ Planned functionality
     -View graphs of your codebase over time:
         
         Change in file count
-        Biggest files
         Biggest/smallest commits
         Mean/median/mode commit size
-        Commit frequency
-    
-    -Most prolific committers
     
     -Who added/deleted the most lines
     
-    -Histogram of commits (both number of files touched and LOC changed)
+    -Histogram of commits (LOC changed)
 
     -Refactor to use object-oriented matplotlib plotting pattern
